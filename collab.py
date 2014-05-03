@@ -6,12 +6,29 @@ import uuid
 import websocket
 import threading
 
-class CollabCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        Co.connect("foo")
+def is_connected(func):
+    def decorated(*args, **kwargs):
+        if Co.connected:
+            func(*args, **kwargs)
+    return decorated
 
-class CollabDisconnectCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
+class CollabConnectCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.show_input_panel('Room: ', '', self.on_done, None, None)
+
+    def on_done(self, room):
+        Co.connect(False if not room else room)
+
+class CollabChangeNickCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.show_input_panel('Nick: ', '', self.on_done, None, None)
+
+    def on_done(self, nick):
+        if nick:
+            Co.updateNick(nick)
+
+class CollabLeaveCommand(sublime_plugin.WindowCommand):
+    def run(self):
         Co.disconnect()
 
 class CollabUpdateCommand(sublime_plugin.EventListener):
@@ -21,14 +38,12 @@ class CollabUpdateCommand(sublime_plugin.EventListener):
         path = view.file_name()
         lang = os.path.basename(view.settings().get('syntax'))
         lang = os.path.splitext(lang)[0].lower()
-        if Co.connected == True:
-            Co.update(text, path, lang)
+        Co.update(text, path, lang)
 
     @is_connected
     def on_selection_modified(self, view):
-        if Co.connected == True:
-            y, x = view.rowcol(view.sel()[0].a)
-            Co.updateCursor(x + 1, y + 1)
+        y, x = view.rowcol(view.sel()[0].a)
+        Co.updateCursor(x + 1, y + 1)
 
 class Connection(threading.Thread):
     def __init__(self, ws):
@@ -37,12 +52,6 @@ class Connection(threading.Thread):
 
     def run(self):
         self.ws.run_forever()
-
-def is_connected(func):
-    def decorated(*args, **kwargs):
-        if Co.connected:
-            func(*args, **kwargs)
-    return decorated
 
 class Collab:
     def __init__(self):
@@ -70,6 +79,7 @@ class Collab:
         self.co = Connection(self.ws)
         self.co.start()
 
+    @is_connected
     def disconnect(self):
         self.connected = False
         self.ws.close()

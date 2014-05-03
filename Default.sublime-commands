@@ -1,0 +1,14 @@
+[
+  {
+    "caption": "Collab - Connect",
+    "command": "collab_connect"
+  },
+  {
+    "caption": "Collab - Change Nick",
+    "command": "collab_change_nick"
+  },
+  {
+    "caption": "Collab - Leave",
+    "command": "collab_leave"
+  }
+]
