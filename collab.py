@@ -12,6 +12,10 @@ def is_connected(func):
             func(*args, **kwargs)
     return decorated
 
+def get_path(view):
+    path = view.file_name()
+    return path if path != None else 'undefined'
+
 class CollabConnectCommand(sublime_plugin.WindowCommand):
     def run(self):
         self.window.show_input_panel('Room: ', '', self.on_done, None, None)
@@ -31,19 +35,20 @@ class CollabLeaveCommand(sublime_plugin.WindowCommand):
     def run(self):
         Co.disconnect()
 
-class CollabUpdateCommand(sublime_plugin.EventListener):
+class CollabListener(sublime_plugin.EventListener):
     @is_connected
     def on_modified(self, view):
         text = view.substr(sublime.Region(0, view.size()))
-        path = view.file_name()
+        path = get_path(view)
         lang = os.path.basename(view.settings().get('syntax'))
         lang = os.path.splitext(lang)[0].lower()
         Co.update(text, path, lang)
 
     @is_connected
     def on_selection_modified(self, view):
+        path = get_path(view)
         y, x = view.rowcol(view.sel()[0].a)
-        Co.updateCursor(x + 1, y + 1)
+        Co.updateCursor(x + 1, y + 1, path)
 
 class Connection(threading.Thread):
     def __init__(self, ws):
@@ -72,7 +77,7 @@ class Collab:
             self.room = room
 
         self.ws = websocket.WebSocketApp(
-            'ws://polar-woodland-4270.herokuapp.com/' + self.room,
+            'ws://radiant-dusk-8167.herokuapp.com/' + self.room,
             on_open = self.on_open,
             on_error = self.on_error)
 
@@ -89,19 +94,19 @@ class Collab:
         if buffer != self.current_buffer:
             self.current_buffer = buffer
             self._send_message('code', {
-                'buffer': buffer,
-                'path': path,
+                'content': buffer,
+                'file': path,
                 'lang': lang
             })
 
-    def updateCursor(self, x, y):
-        self._send_message('cursor', { 'x': x, 'y': y })
+    def updateCursor(self, x, y, path):
+        self._send_message('cursor', {'x': x, 'y': y, 'file': path})
 
     def updateNick(self, name):
-        self._send_message('update-nick', name)
+        self._send_message('change-nick', {'name': name})
 
     @is_connected
     def _send_message(self, t, d):
-        self.ws.send(json.dumps({ 't': t, 'd': d }))
+        self.ws.send(t + json.dumps(d))
 
 Co = Collab()

@@ -18,7 +18,40 @@ Copyright (C) 2010 Hiroki Ohtani(liris)
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 """
-from ._core import *
-from ._app import WebSocketApp
 
-__version__ = "0.22.0"
+
+"""
+define websocket exceptions
+"""
+
+class WebSocketException(Exception):
+    """
+    websocket exeception class.
+    """
+    pass
+
+class WebSocketProtocolException(WebSocketException):
+    """
+    If the webscoket protocol is invalid, this exception will be raised.
+    """
+    pass
+
+class WebSocketPayloadException(WebSocketException):
+    """
+    If the webscoket payload is invalid, this exception will be raised.
+    """
+    pass
+
+class WebSocketConnectionClosedException(WebSocketException):
+    """
+    If remote host closed the connection or some network error happened,
+    this exception will be raised.
+    """
+    pass
+
+class WebSocketTimeoutException(WebSocketException):
+    """
+    WebSocketTimeoutException will be raised at socket timeout during read/write data.
+    """
+    pass
+
