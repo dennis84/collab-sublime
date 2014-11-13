@@ -4,6 +4,11 @@
     "command": "collab_connect"
   },
   {
+    "caption": "Collab - Connect (localhost)",
+    "command": "collab_connect",
+    "args": {"local": true}
+  },
+  {
     "caption": "Collab - Change Nick",
     "command": "collab_change_nick"
   },
