@@ -45,8 +45,11 @@ class CollabListener(sublime_plugin.EventListener):
     def on_modified(self, view):
         text = view.substr(sublime.Region(0, view.size()))
         path = get_path(view)
-        lang = os.path.basename(view.settings().get('syntax'))
-        lang = os.path.splitext(lang)[0].lower()
+        lang = 'undefined'
+        syntax = view.settings().get('syntax')
+        if syntax != None:
+            lang = os.path.basename(view.settings().get('syntax'))
+            lang = os.path.splitext(lang)[0].lower()
         Co.update(text, path, lang)
 
     def on_selection_modified(self, view):
